@@ -1,0 +1,10 @@
+CREATE TABLE IF NOT EXISTS todo (
+    id SERIAL PRIMARY KEY,
+    userid int REFERENCES users(id),
+    title TEXT NOT NULL ,
+    description TEXT,
+    due_date TIMESTAMP WITH TIME ZONE ,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    update_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    archived_at TIMESTAMP WITH TIME ZONE
+)
