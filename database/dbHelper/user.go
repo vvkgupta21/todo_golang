@@ -50,7 +50,7 @@ func GetUserIDByPassword(email, password string) (int, error) {
 	return userID, nil
 }
 
-func AddTodo(db sqlx.Ext, userId int, title, description string, dueDate time.Time) error {
+func CreateTodo(db sqlx.Ext, userId int, title, description string, dueDate time.Time) error {
 	SQL := `INSERT INTO todo(userid, title, description, due_date) VALUES ($1, $2, $3, $4)`
 	_, err := db.Exec(SQL, userId, title, description, dueDate)
 	return err

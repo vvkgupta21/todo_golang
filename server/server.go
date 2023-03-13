@@ -1,7 +1,7 @@
 package server
 
 import (
-	"github.com/go-chi/chi/v5"
+	"github.com/gin-gonic/gin"
 	"net/http"
 	"time"
 	"todo/database/handler"
@@ -9,7 +9,7 @@ import (
 )
 
 type Server struct {
-	chi.Router
+	*gin.Engine
 	server *http.Server
 }
 
@@ -20,27 +20,30 @@ const (
 )
 
 func SetupRoutes() *Server {
-	routes := chi.NewRouter()
-	routes.Route("/api", func(api chi.Router) {
-		api.Post("/register", handler.RegisterUser)
-		api.Post("/login", handler.LoginUser)
-		api.Route("/todo", func(todo chi.Router) {
-			todo.Use(middleware.AuthMiddleware)
-			todo.Post("/task", handler.CreateTask)
-			todo.Get("/all-task", handler.GetAllTask)
-			todo.Put("/{id}", handler.UpdateUser)
-			todo.Delete("/{id}", handler.DeleteTask)
-		})
-	})
+	routes := gin.Default()
+	userAuth := routes.Group("/api")
+	{
+		userAuth.POST("/register", handler.RegisterUser)
+		userAuth.POST("/login", handler.LoginUser)
+
+		userTask := userAuth.Group("/todo")
+		{
+			userTask.Use(middleware.AuthMiddleware())
+			userTask.POST("/task", handler.CreateTask)
+			userTask.GET("/all-task", handler.GetAllTask)
+			userTask.PUT("/:id", handler.UpdateUser)
+			userTask.DELETE("/:id", handler.DeleteTask)
+		}
+	}
 	return &Server{
-		Router: routes,
+		Engine: routes,
 	}
 }
 
 func (svc *Server) Run(port string) error {
 	svc.server = &http.Server{
 		Addr:              port,
-		Handler:           svc.Router,
+		Handler:           svc.Engine,
 		ReadTimeout:       readTimeout,
 		ReadHeaderTimeout: readHeaderTimeout,
 		WriteTimeout:      writeTimeout,
